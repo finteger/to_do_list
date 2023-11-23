@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  table_calendar: ^3.0.9
 
 dev_dependencies:
   flutter_test:
@@ -22,4 +23,4 @@ flutter:
   fonts:
     - family: Caveat
       fonts:
-        - assets/Caveat-Regular.tff
+        - asset: assets/Caveat-Regular.ttf
