@@ -53,46 +53,49 @@ class _MyHomePageState extends State<MyHomePage> {
               lastDay: DateTime(2024),
             ),
           ),
-          ListView.builder(
-              itemCount: 0,
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  decoration: BoxDecoration(
-                    color: checkboxes[index]
-                        ? Colors.green.withOpacity(0.7)
-                        : Colors.blue.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        !checkboxes[index]
-                            ? Icons.manage_history
-                            : Icons.playlist_add_check_circle,
-                        size: 32,
-                      ),
-                      SizedBox(width: 18),
-                      Text(
-                        '${tasks[index]}',
-                        style: checkboxes[index]
-                            ? TextStyle(
-                                decoration: TextDecoration.lineThrough,
-                                fontSize: 20,
-                                color: Colors.black.withOpacity(0.5),
-                              )
-                            : TextStyle(fontSize: 20),
-                      ),
-                      Checkbox(
-                          value: checkboxes[index],
-                          onChanged: (newValue) {
-                            setState(() {
-                              checkboxes[index] = newValue!;
-                            });
-                          }),
-                    ],
-                  ),
-                );
-              }),
+          Expanded(
+            flex: 1,
+            child: ListView.builder(
+                itemCount: 0,
+                itemBuilder: (BuildContext context, int index) {
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: checkboxes[index]
+                          ? Colors.green.withOpacity(0.7)
+                          : Colors.blue.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          !checkboxes[index]
+                              ? Icons.manage_history
+                              : Icons.playlist_add_check_circle,
+                          size: 32,
+                        ),
+                        SizedBox(width: 18),
+                        Text(
+                          '${tasks[index]}',
+                          style: checkboxes[index]
+                              ? TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                  fontSize: 20,
+                                  color: Colors.black.withOpacity(0.5),
+                                )
+                              : TextStyle(fontSize: 20),
+                        ),
+                        Checkbox(
+                            value: checkboxes[index],
+                            onChanged: (newValue) {
+                              setState(() {
+                                checkboxes[index] = newValue!;
+                              });
+                            }),
+                      ],
+                    ),
+                  );
+                }),
+          ),
         ],
       ),
     );
