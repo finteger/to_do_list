@@ -24,6 +24,43 @@ class _MyHomePageState extends State<MyHomePage> {
   FocusNode _textFieldFocusNode = FocusNode();
   CalendarFormat _calendarFormat = CalendarFormat.month;
 
+  void addItemToList() async {
+    final String taskName = nameController.text;
+
+    //Add to the Firestore collection
+    await db.collection('tasks').add({
+      'name': taskName,
+      'completed': isChecked,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    setState(() {
+      tasks.insert(0, taskName);
+      checkboxes.insert(0, false);
+    });
+  }
+
+  //Asynchronous function to update the completion status of a task in Firestore
+  Future<void> updateTaskCompletionStatus(
+      String taskName, bool completed) async {
+    //Get a reference to the 'tasks' collection in Firestore.
+    CollectionReference tasksCollection = db.collection('tasks');
+
+    //Query Firestore for documents (tasks) with the given task name
+
+    QuerySnapshot querySnapshot =
+        await tasksCollection.where('name', isEqualTo: taskName).get();
+
+    //If a matching task document is found
+    if (querySnapshot.size > 0) {
+      //Get a reference to the first matching document
+      DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+
+      //Update the 'completed' field of the document with the new completion status
+      await documentSnapshot.reference.update({'completed': completed});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +131,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               setState(() {
                                 checkboxes[index] = newValue!;
                               });
+                              updateTaskCompletionStatus(
+                                tasks[index],
+                                newValue!,
+                              );
                             }),
                       ],
                     ),
