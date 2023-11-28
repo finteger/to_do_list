@@ -19,6 +19,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isChecked = false;
 
+  TextEditingController nameController = TextEditingController();
+
   DateTime _focusedDay = DateTime.now();
   DateTime _selectedDay = DateTime.now();
   FocusNode _textFieldFocusNode = FocusNode();
@@ -97,7 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             flex: 1,
             child: ListView.builder(
-                itemCount: 0,
+                itemCount: tasks.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Container(
                     decoration: BoxDecoration(
@@ -140,6 +142,27 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   );
                 }),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  child: TextField(
+                    controller: nameController,
+                    focusNode: _textFieldFocusNode,
+                    maxLength: 20,
+                    style: TextStyle(fontSize: 18),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.all(16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      labelText: 'Enter your task here',
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
