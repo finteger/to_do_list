@@ -63,6 +63,50 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<void> fetchTasksFromFirestore() async {
+    CollectionReference tasksCollection = db.collection('tasks');
+
+    QuerySnapshot querySnapshot = await tasksCollection.get();
+
+    List<String> fetchedTasks = [];
+
+    for (QueryDocumentSnapshot docSnapshot in querySnapshot.docs) {
+      String taskName = docSnapshot.get('name');
+      bool completed = docSnapshot.get('completed');
+
+      fetchedTasks.add(taskName);
+    }
+
+    setState(() {
+      tasks.clear();
+      tasks.addAll(fetchedTasks);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    fetchTasksFromFirestore();
+  }
+
+  void removeItem(int index) async {
+    //Get the task that needs to be removed
+    String taskNameToRemove = tasks[index];
+
+    //Remove the task from the Firestore collection
+    QuerySnapshot querySnapshot = await db
+        .collection('tasks')
+        .where('name', isEqualTo: taskNameToRemove)
+        .get();
+
+    if (querySnapshot.size > 0) {
+      DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+
+      await documentSnapshot.reference.delete();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,62 +152,80 @@ class _MyHomePageState extends State<MyHomePage> {
                           : Colors.blue.withOpacity(0.7),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          !checkboxes[index]
-                              ? Icons.manage_history
-                              : Icons.playlist_add_check_circle,
-                          size: 32,
-                        ),
-                        SizedBox(width: 18),
-                        Text(
-                          '${tasks[index]}',
-                          style: checkboxes[index]
-                              ? TextStyle(
-                                  decoration: TextDecoration.lineThrough,
-                                  fontSize: 20,
-                                  color: Colors.black.withOpacity(0.5),
-                                )
-                              : TextStyle(fontSize: 20),
-                        ),
-                        Checkbox(
-                            value: checkboxes[index],
-                            onChanged: (newValue) {
-                              setState(() {
-                                checkboxes[index] = newValue!;
-                              });
-                              updateTaskCompletionStatus(
-                                tasks[index],
-                                newValue!,
-                              );
-                            }),
-                      ],
+                    margin: EdgeInsets.all(2),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Icon(
+                            !checkboxes[index]
+                                ? Icons.manage_history
+                                : Icons.playlist_add_check_circle,
+                            size: 32,
+                          ),
+                          SizedBox(width: 18),
+                          Text(
+                            '${tasks[index]}',
+                            style: checkboxes[index]
+                                ? TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    fontSize: 20,
+                                    color: Colors.black.withOpacity(0.5),
+                                  )
+                                : TextStyle(fontSize: 20),
+                          ),
+                          Checkbox(
+                              value: checkboxes[index],
+                              onChanged: (newValue) {
+                                setState(() {
+                                  checkboxes[index] = newValue!;
+                                });
+                                updateTaskCompletionStatus(
+                                  tasks[index],
+                                  newValue!,
+                                );
+                              }),
+                          IconButton(
+                            onPressed: null,
+                            icon: Icon(Icons.delete),
+                          )
+                        ],
+                      ),
                     ),
                   );
                 }),
           ),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  child: TextField(
-                    controller: nameController,
-                    focusNode: _textFieldFocusNode,
-                    maxLength: 20,
-                    style: TextStyle(fontSize: 18),
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(16),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+          Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    child: TextField(
+                      controller: nameController,
+                      focusNode: _textFieldFocusNode,
+                      maxLength: 20,
+                      style: TextStyle(fontSize: 18),
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        labelText: 'Enter your task here',
                       ),
-                      labelText: 'Enter your task here',
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+          ElevatedButton(
+              child: Text('Add To-Do Item'),
+              onPressed: () {
+                _textFieldFocusNode.unfocus();
+                addItemToList();
+              }),
         ],
       ),
     );
