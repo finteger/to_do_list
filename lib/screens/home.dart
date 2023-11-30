@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:weather/weather.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -40,6 +41,8 @@ class _MyHomePageState extends State<MyHomePage> {
       tasks.insert(0, taskName);
       checkboxes.insert(0, false);
     });
+
+    clearTextField();
   }
 
   //Asynchronous function to update the completion status of a task in Firestore
@@ -105,6 +108,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
       await documentSnapshot.reference.delete();
     }
+
+    //Remove the task from the task list and checkboxes
+    setState(() {
+      tasks.removeAt(index);
+      checkboxes.removeAt(index);
+    });
+  }
+
+  void clearTextField() {
+    setState(() {
+      nameController.clear();
+    });
+  }
+
+  Future<List<Weather>> getData() async {
+    String? cityName = 'Red Deer, CA';
+    WeatherFactory wf = WeatherFactory("ce8eb3004b0dcfd8664bd52d8f1eae78");
+    List<Weather> forecast = await wf.fiveDayForecastByCityName(cityName);
+    return forecast;
   }
 
   @override
@@ -140,6 +162,45 @@ class _MyHomePageState extends State<MyHomePage> {
               lastDay: DateTime(2024),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Center(
+              child: FutureBuilder<List<Weather>>(
+                future: getData(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else if (snapshot.hasData) {
+                    List<Weather> forecast = snapshot.data!;
+
+                    // Extracting weather, temperature, and wind information
+                    Weather firstWeather = forecast[0];
+                    String city = "Red Deer, CA";
+                    String? weatherCondition = firstWeather.weatherMain;
+                    double? temperature = firstWeather.temperature?.celsius;
+                    double? windSpeed = firstWeather.windSpeed;
+
+                    return Column(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start, // Align text to the left
+                      children: [
+                        Text('$city',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Weather Condition: $weatherCondition'),
+                        Text('Temperature: $temperature °C'),
+                        Text('Wind Speed: $windSpeed m/s'),
+                      ],
+                    );
+                  } else {
+                    return Text('No data available');
+                  }
+                },
+              ),
+            ),
+          ),
           Expanded(
             flex: 1,
             child: ListView.builder(
@@ -156,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             !checkboxes[index]
@@ -165,16 +226,19 @@ class _MyHomePageState extends State<MyHomePage> {
                             size: 32,
                           ),
                           SizedBox(width: 18),
-                          Text(
-                            '${tasks[index]}',
-                            style: checkboxes[index]
-                                ? TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    fontSize: 20,
-                                    color: Colors.black.withOpacity(0.5),
-                                  )
-                                : TextStyle(fontSize: 20),
+                          Expanded(
+                            child: Text(
+                              '${tasks[index]}',
+                              style: checkboxes[index]
+                                  ? TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                      fontSize: 20,
+                                      color: Colors.black.withOpacity(0.5),
+                                    )
+                                  : TextStyle(fontSize: 20),
+                            ),
                           ),
+                          SizedBox(width: 58),
                           Checkbox(
                               value: checkboxes[index],
                               onChanged: (newValue) {
@@ -187,7 +251,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 );
                               }),
                           IconButton(
-                            onPressed: null,
+                            onPressed: () {
+                              removeItem(index);
+                            },
                             icon: Icon(Icons.delete),
                           )
                         ],
@@ -205,7 +271,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: TextField(
                       controller: nameController,
                       focusNode: _textFieldFocusNode,
-                      maxLength: 20,
+                      maxLength: 23,
+                      maxLines: 1,
                       style: TextStyle(fontSize: 18),
                       decoration: InputDecoration(
                         contentPadding: EdgeInsets.all(16),
