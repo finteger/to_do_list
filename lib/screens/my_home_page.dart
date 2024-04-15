@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -9,7 +11,30 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  FirebaseFirestore db = FirebaseFirestore.instance;
+
+  final List<String> tasks = <String>[];
+
+  final List<bool> checkboxes = List.generate(8, (index) => false);
+
+  bool isChecked = false;
+
   TextEditingController nameController = TextEditingController();
+
+  void addItemToList() async {
+    final String taskName = nameController.text;
+
+    await db.collection('tasks').add({
+      'name': taskName,
+      'completed': isChecked,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    setState(() {
+      tasks.insert(0, taskName);
+      checkboxes.insert(0, false);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: const EdgeInsets.all(12.0),
                   child: TableCalendar(
                     calendarFormat: CalendarFormat.month,
-                    headerVisible: true,
+                    headerVisible: false,
                     focusedDay: DateTime.now(),
                     firstDay: DateTime(2023),
                     lastDay: DateTime(2025),
@@ -73,11 +98,21 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: null,
-                child: Text('Submit'),
+              child: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ElevatedButton(
+                  onPressed: addItemToList,
+                  child: Text(
+                    'Add Task',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
               ),
             )
           ],
