@@ -67,6 +67,51 @@ class _MyHomePageState extends State<MyHomePage> {
       //Add the task name to the list of fetched tasks
       fetchedTasks.add(taskName);
     }
+
+    //Update the state to reflect the fetched tasks
+
+    setState(() {
+      tasks.clear(); // Clear the existing task list
+      tasks.addAll(fetchedTasks);
+    });
+  }
+
+  //Asynchronous function to update the completion status of the task in Firestore
+
+  Future<void> updateTaskCompletionStatus(
+      String taskName, bool completed) async {
+    //Get a reference to the 'tasks' collection in Firestore
+    CollectionReference tasksCollection = db.collection('tasks');
+
+    //Query Firestore for documents (tasks) with the given task name
+    QuerySnapshot querySnapshot =
+        await tasksCollection.where('name', isEqualTo: taskName).get();
+
+    //If a matching task document is found
+    if (querySnapshot.size > 0) {
+      //Get a reference to the first matching document
+      DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+
+      //Update the completed field to the new completion status
+      await documentSnapshot.reference.update({'completed': completed});
+    }
+
+    setState(() {
+      //find the index of the task in the task list
+      int taskIndex = tasks.indexWhere((task) => task == taskName);
+
+      //Update the corresponding checkbox value in the checkboxes list
+      checkboxes[taskIndex] = completed;
+    });
+  }
+
+//Override the initState method of the State class
+  @override
+  void initState() {
+    super.initState();
+
+    //Call the function to fetched the tasks from the database
+    fetchTasksFromFirestore();
   }
 
   @override
