@@ -118,7 +118,32 @@ class _MyHomePageState extends State<MyHomePage> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
-                        children: [],
+                        children: [
+                          Icon(
+                            !checkboxes[index]
+                                ? Icons.manage_history
+                                : Icons.playlist_add_check_circle,
+                            size: 32,
+                          ),
+                          SizedBox(width: 18),
+                          Text(
+                            '${tasks[index]}',
+                            style: checkboxes[index]
+                                ? TextStyle(
+                                    decoration: TextDecoration.lineThrough,
+                                    fontSize: 20,
+                                    color: Colors.black.withOpacity(0.5))
+                                : TextStyle(fontSize: 20),
+                          ),
+                          Checkbox(
+                            value: checkboxes[index],
+                            onChanged: (newValue) {
+                              setState(() {
+                                checkboxes[index] = newValue!;
+                              });
+                            },
+                          ),
+                        ],
                       ),
                     ),
                   );
