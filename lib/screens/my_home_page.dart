@@ -46,6 +46,30 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void removeItem(int index) async {
+    //Get the task name to be removed
+    String taskNameToRemove = tasks[index];
+
+    //Remove the task from the Firestore database
+    QuerySnapshot querySnapshot = await db
+        .collection('tasks')
+        .where('name', isEqualTo: taskNameToRemove)
+        .get();
+
+    if (querySnapshot.size > 0) {
+      DocumentSnapshot documentSnapshot = querySnapshot.docs[0];
+
+      //Update the completed field to the new completion status
+      await documentSnapshot.reference.delete();
+    }
+
+    //Remove task from the task list and the checkboxes list
+    setState(() {
+      tasks.removeAt(index);
+      checkboxes.removeAt(index);
+    });
+  }
+
   void clearTextField() {
     setState(() {
       nameController.clear();
@@ -231,7 +255,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete),
-                                  onPressed: null,
+                                  onPressed: () {
+                                    removeItem(index);
+                                  },
                                 ),
                               ],
                             ),
@@ -276,7 +302,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   IconButton(
                     icon: Icon(Icons.clear),
-                    onPressed: null,
+                    onPressed: () {
+                      clearTextField();
+                    },
                   ),
                 ],
               ),
