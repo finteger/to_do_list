@@ -198,7 +198,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: Padding(
                         padding: const EdgeInsets.all(14.0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Icon(
                               !checkboxes[index]
@@ -207,14 +206,16 @@ class _MyHomePageState extends State<MyHomePage> {
                               size: 32,
                             ),
                             SizedBox(width: 18),
-                            Text(
-                              '${tasks[index]}',
-                              style: checkboxes[index]
-                                  ? TextStyle(
-                                      decoration: TextDecoration.lineThrough,
-                                      fontSize: 20,
-                                      color: Colors.black.withOpacity(0.5))
-                                  : TextStyle(fontSize: 20),
+                            Expanded(
+                              child: Text(
+                                '${tasks[index]}',
+                                style: checkboxes[index]
+                                    ? TextStyle(
+                                        decoration: TextDecoration.lineThrough,
+                                        fontSize: 20,
+                                        color: Colors.black.withOpacity(0.5))
+                                    : TextStyle(fontSize: 20),
+                              ),
                             ),
                             Row(
                               children: [
