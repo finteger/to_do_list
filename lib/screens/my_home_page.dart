@@ -19,6 +19,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool isChecked = false;
 
+  FocusNode _textFieldFocusNode = FocusNode();
+
   /*
   The TextEditingController class allows us to 
   grab the input from the TextField() widget
@@ -34,13 +36,19 @@ class _MyHomePageState extends State<MyHomePage> {
     //Add to the Firestore collection
     await db.collection('tasks').add({
       'name': taskName,
-      'completed': null,
+      'completed': false,
       'timestamp': FieldValue.serverTimestamp(),
     });
 
     setState(() {
       tasks.insert(0, taskName);
       checkboxes.insert(0, false);
+    });
+  }
+
+  void clearTextField() {
+    setState(() {
+      nameController.clear();
     });
   }
 
@@ -187,38 +195,47 @@ class _MyHomePageState extends State<MyHomePage> {
                             : Colors.blue.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(
-                            !checkboxes[index]
-                                ? Icons.manage_history
-                                : Icons.playlist_add_check_circle,
-                            size: 32,
-                          ),
-                          SizedBox(width: 18),
-                          Text(
-                            '${tasks[index]}',
-                            style: checkboxes[index]
-                                ? TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    fontSize: 20,
-                                    color: Colors.black.withOpacity(0.5))
-                                : TextStyle(fontSize: 20),
-                          ),
-                          Checkbox(
-                            value: checkboxes[index],
-                            onChanged: (newValue) {
-                              setState(() {
-                                checkboxes[index] = newValue!;
-                              });
-                            },
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: null,
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Icon(
+                              !checkboxes[index]
+                                  ? Icons.manage_history
+                                  : Icons.playlist_add_check_circle,
+                              size: 32,
+                            ),
+                            SizedBox(width: 18),
+                            Text(
+                              '${tasks[index]}',
+                              style: checkboxes[index]
+                                  ? TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                      fontSize: 20,
+                                      color: Colors.black.withOpacity(0.5))
+                                  : TextStyle(fontSize: 20),
+                            ),
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: checkboxes[index],
+                                  onChanged: (newValue) {
+                                    setState(() {
+                                      checkboxes[index] = newValue!;
+                                    });
+                                    updateTaskCompletionStatus(
+                                        tasks[index], newValue!);
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: null,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -231,6 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(
                       child: TextField(
                         controller: nameController,
+                        focusNode: _textFieldFocusNode,
                         style: TextStyle(fontSize: 18),
                         maxLength: 20,
                         decoration: InputDecoration(
@@ -267,6 +285,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: ElevatedButton(
                 onPressed: () {
                   addItemToList();
+                  _textFieldFocusNode.unfocus();
+                  clearTextField();
+                  //This will unfocus the keyboard, closing it.
                 },
                 child: Text('Add To-Do Item'),
               ),
